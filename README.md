@@ -12,3 +12,13 @@ The objective is to build a simple platform to upload and view files:
 - Change permission of a file
 - View a file
 - Generate thumbnails for images
+
+# Provided files
+
+- package.json
+- .eslintrc.js
+- babel.config.js
+
+**and…**
+
+Don’t forget to run $ npm install when you have the package.json
