@@ -56,7 +56,41 @@ class DBClient {
     const noFiles = await fileCollection.countDocuments();
     return noFiles;
   }
+
+  /**
+  * saves a users in users collections
+  * @param {string} email - User's email
+  * @param {string} passHash - Password Hash
+  * @returns {Promise<User>} - inserted user object
+  */
+  async saveUsers(email, passHash) {
+    try {
+      const db = this.client.db();
+      const userCollection = db.collection('users');
+      const user = {
+        email: email,
+        password: passHash,
+    };
+      const insertedUser = await userCollection.insertOne(user)
+      return insertedUser.ops[0];
+    } catch (error) {
+      throw new Error('Error saving user: ' + error.message);
+    }
+  }
+
+  /**
+  * checks if user exists in user collection with given email
+  * @param {string} Users email
+  * @returns {Promise<Number>} Number of matching users 0 or 1
+  */
+  async checkIfUserExists(email) {
+    const db = this.client.db();
+    const userCollection = db.collection('users');
+    const count = await userCollection.countDocuments({ email: email });
+    return count;
+  }
 }
+
 
 export const dbClient = new DBClient();
 export default dbClient;
