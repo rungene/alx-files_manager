@@ -1,10 +1,11 @@
-import dbClient from '../utils/db';
+/* eslint-disable import/no-named-as-default */
 import crypto from 'crypto';
+import dbClient from '../utils/db';
 
 export default class UsersController {
   static async postNew(req, res) {
-    const email = req.body.email;
-    const pass = req.body.password;
+    const email = req.body ? req.body.email : null;
+    const pass = req.body ? req.body.password : null;
     if (!email) {
       return res.status(400).send({
         error: 'Missing email',
@@ -24,13 +25,11 @@ export default class UsersController {
       });
     }
     const hashedPassword = crypto.createHash('sha1').update(pass).digest('hex');
-    const newUser = await (await dbClient.usersCollection()).insertOne({ email, password: hashedPassword });
-    if (!newUser || !newUser.email) {
-      return res.status(500).send({ error: 'Error creating user' });  
-    }
+    const newUser = await (await dbClient.usersCollection())
+      .insertOne({ email, password: hashedPassword });
     return res.status(201).send({
-      id: newUser.insertedId, 
-      email: email,
+      id: newUser.insertedId,
+      email,
     });
   }
 }
