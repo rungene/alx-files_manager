@@ -22,7 +22,7 @@ export default class UsersController {
     const user = await (await dbClient.usersCollection()).findOne({ email });
     if (user) {
       return res.status(400).send({
-        error: 'Already exists',
+        error: 'Already exist',
       });
     }
     const hashedPassword = sha1(pass);
