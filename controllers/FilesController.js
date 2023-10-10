@@ -2,6 +2,8 @@ import { tmpdir } from 'os';
 import { ObjectId } from 'mongodb';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
+import { mkdir, writeFile } from 'fs';
+import { join as joinPath } from 'path';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -59,7 +61,7 @@ export default class FilesController {
       return res.status(400).send({ error: 'Missing data' });
     }
     if ((parentId !== ROOT_FOLDER_ID && parentId !== ROOT_FOLDER_ID.toString())) {
-      const file = await (await dbClient.filesCollection().
+      const file = await (await dbClient.filesCollection()).
         findOne({
            _id: new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID), 
         });
@@ -83,6 +85,13 @@ export default class FilesController {
         ? '0'
         : new mongoDBCore.BSON.ObjectId(parentId),
     };
-
+    await mkDirAsync(baseDir, { recursive: true});
+    if (type !== acceptedType.folder) {
+      const localPath = joinPath(baseDir, uuidv4());
+      // Decode Base64 and write it to the local file
+      const decodedData = Buffer.from(data, 'base64');
+      await writeFileAsync(localPath, decodedData);
+      newFile.localPath = localPath;
+    }
   }
 }
