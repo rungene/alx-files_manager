@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
 import { mkdir, writeFile } from 'fs';
 import { join as joinPath } from 'path';
+import mongoDBCore from 'mongodb/lib/core';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -93,5 +94,10 @@ export default class FilesController {
       await writeFileAsync(localPath, decodedData);
       newFile.localPath = localPath;
     }
+    const insertInfo = await (await dbClient.filesCollection())
+      .insertOne(newFile);
+    const fileId = insertInfo.insertedId.toString();
+    const createdFile = { ...newFile, _id: fileId};
+    return res.status(201).json({createdFile});
   }
 }
