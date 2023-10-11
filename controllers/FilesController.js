@@ -1,5 +1,5 @@
 import { tmpdir } from 'os';
-import { ObjectId } from 'mongodb';
+// import { ObjectId } from 'mongodb';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
 import { mkdir, writeFile } from 'fs';
@@ -9,7 +9,7 @@ import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
 const ROOT_FOLDER_ID = 0;
-const acceptedType = { folder: 'folder', file: 'file', image: 'image'};
+const acceptedType = { folder: 'folder', file: 'file', image: 'image' };
 const NULL_ID = Buffer.alloc(24, '0').toString('utf-8');
 const DEFAULT_ROOT_FOLDER = 'files_manager';
 const mkDirAsync = promisify(mkdir);
@@ -23,19 +23,25 @@ const isValidId = (id) => {
     [65, 70], // A - F
   ];
   if (typeof id !== 'string' || id.length !== size) {
-    return false;  
+    return false;
   }
   while (i < size) {
     const c = id[i];
     const code = c.charCodeAt(0);
     if (!charRanges.some((range) => code >= range[0] && code <= range[1])) {
-      return false;  
+      return false;
     }
-    i += 1
+    i += 1;
   }
   return true;
-}
+};
+
 export default class FilesController {
+  /**
+   * Uploads a file
+   * @param {req} Request, the express request object
+   * @param {res} Result, the express result object.
+   */
   static async postUpload(req, res) {
     const xToken = req.header('X-Token');
     if (!xToken) {
@@ -46,36 +52,36 @@ export default class FilesController {
     if (!userId) {
       return res.status(401).send({ error: 'Unauthorized' });
     }
-    const userObj = await (await dbClient.usersCollection()).findOne({ _id: ObjectId(userId) });
+    // const userObj = await (await dbClient.usersCollection()).findOne({ _id: ObjectId(userId) });
     const name = req.body ? req.body.name : null;
     const type = req.body ? req.body.type : null;
     const parentId = req.body && req.body.parentId ? req.body.parentId : ROOT_FOLDER_ID;
     const isPublic = req.body && req.body.isPublic ? req.body.isPublic : false;
     const data = req.body && req.body.data ? req.body.data : '';
     if (!name) {
-      return res.status(400).send({ error: 'Missing name' });  
+      return res.status(400).send({ error: 'Missing name' });
     }
     if (!type || !Object.values(acceptedType).includes(type)) {
-      return res.status(400).send({ error: 'Missing type' });  
+      return res.status(400).send({ error: 'Missing type' });
     }
     if (!data && type !== acceptedType.folder) {
       return res.status(400).send({ error: 'Missing data' });
     }
     if ((parentId !== ROOT_FOLDER_ID && parentId !== ROOT_FOLDER_ID.toString())) {
-      const file = await (await dbClient.filesCollection()).
-        findOne({
-           _id: new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID), 
+      const file = await (await dbClient.filesCollection())
+        .findOne({
+          _id: new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID),
         });
       if (!file) {
-        return res.status(400).send({ error: 'Parent not found' });  
+        return res.status(400).send({ error: 'Parent not found' });
       }
       if (file.type !== acceptedType.folder) {
-        return res.status(400).send({ error: 'Parent is not a folder' });  
+        return res.status(400).send({ error: 'Parent is not a folder' });
       }
     }
-   const baseDir = `${process.env.FOLDER_PATH || ''}`.trim().length > 0
-    ? process.env.FOLDER_PATH.trim()
-    : joinPath(tmpdir(), DEFAULT_ROOT_FOLDER);
+    const baseDir = `${process.env.FOLDER_PATH || ''}`.trim().length > 0
+      ? process.env.FOLDER_PATH.trim()
+      : joinPath(tmpdir(), DEFAULT_ROOT_FOLDER);
 
     const newFile = {
       userId: new mongoDBCore.BSON.ObjectId(userId),
@@ -86,7 +92,7 @@ export default class FilesController {
         ? '0'
         : new mongoDBCore.BSON.ObjectId(parentId),
     };
-    await mkDirAsync(baseDir, { recursive: true});
+    await mkDirAsync(baseDir, { recursive: true });
     if (type !== acceptedType.folder) {
       const localPath = joinPath(baseDir, uuidv4());
       // Decode Base64 and write it to the local file
@@ -97,7 +103,7 @@ export default class FilesController {
     const insertInfo = await (await dbClient.filesCollection())
       .insertOne(newFile);
     const fileId = insertInfo.insertedId.toString();
-    const createdFile = { ...newFile, _id: fileId};
-    return res.status(201).json({createdFile});
+    const createdFile = { ...newFile, _id: fileId };
+    return res.status(201).json({ createdFile });
   }
 }
