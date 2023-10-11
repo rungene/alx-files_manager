@@ -103,7 +103,15 @@ export default class FilesController {
     const insertInfo = await (await dbClient.filesCollection())
       .insertOne(newFile);
     const fileId = insertInfo.insertedId.toString();
-    const createdFile = { ...newFile, _id: fileId };
-    return res.status(201).json({ createdFile });
+    return res.status(201).json({
+      id: fileId,
+      userId,
+      name,
+      type,
+      isPublic,
+      parentId: (parentId === ROOT_FOLDER_ID) || (parentId === ROOT_FOLDER_ID.toString())
+        ? '0'
+        : parentId,
+    });
   }
 }
