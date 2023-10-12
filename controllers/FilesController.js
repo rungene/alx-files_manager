@@ -177,5 +177,25 @@ export default class FilesController {
         ? 0
         : new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID),
     };
-    const files = await (await )
-}
+    const files = await (await (await dbClient.filesCollection()) 
+      .aggregate([
+        { $match: fileFilters },
+        { $sort: { _id: -1 }},
+        { $skip: page * MAX_FILES_PER_PAGE },
+        { $limit: MAX_FILES_PER_PAGE },
+        {
+          $project: {
+            _id: 0,
+            id: '$_id',
+            userId: '$userId',
+            name: '$name',
+            type: '$type',
+            isPublic: '$isPublic',
+            parentId: {
+              $cond: { if: { $eq: ['$parentId', '0'] }, then: 0, else: '$parentId' },
+            },
+          },
+        },
+      ])).toArray();
+    res.status(200).json(files)
+  }
