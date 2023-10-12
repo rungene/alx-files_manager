@@ -110,7 +110,7 @@ export default class FilesController {
       type,
       isPublic,
       parentId: (parentId === ROOT_FOLDER_ID) || (parentId === ROOT_FOLDER_ID.toString())
-        ? '0'
+        ? 0
         : parentId,
     });
   }
