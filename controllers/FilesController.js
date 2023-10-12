@@ -118,7 +118,7 @@ export default class FilesController {
   /**
   * retrieve the file document based on the ID
   * @param {req} The express request object
-  * @param {res} The express result object
+  * @param {res} The express response object
   */
   static async getShow(req, res) {
     const xToken = req.header('X-Token');
@@ -151,4 +151,31 @@ export default class FilesController {
         : file.parentId.toString(),
     });
   }
+
+  /**
+  * retrieve all users file documents for a specific parentId and with pagination
+  * @param {req} The express request object
+  * @param {res} The express response object
+  */
+  static async getIndex(req, res) {
+    const xToken = req.header('X-Token');
+    if (!xToken) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+    const key = `auth_${xToken}`;
+    const userId = await redisClient.get(key);
+    if (!userId) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+    const parentId = req.query.parentId || ROOT_FOLDER_ID.toString()
+    const page = /\d+/.test((req.query.page || '').toString())
+      ? Number.parseInt(req.query.page, 10)
+      : 0;
+    const fileFilters = {
+      userId: userId,
+      parentId: parentId === ROOT_FOLDER_ID.toString()
+        ? 0
+        : new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID),
+    };
+    const files = await (await )
 }
