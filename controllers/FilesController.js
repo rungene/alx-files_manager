@@ -200,4 +200,44 @@ export default class FilesController {
       ])).toArray();
     return res.status(200).json(files);
   }
+
+  /**
+  *  set isPublic to true on the file document based on the ID
+  * @param {req} The express request object
+  * @param {res} The express response object
+  */
+  static async putPublish(req, res) {
+    const xToken = req.header('X-Token');
+    if (!xToken) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+    const key = `auth_${xToken}`;
+    const userId = await redisClient.get(key);
+    if (!userId) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+    const id = req.params ? req.params.id : NULL_ID;
+    const filterFile = {
+      _id: new mongoDBCore.BSON.ObjectId(isValidId(id) ? id : NULL_ID),
+      userId: new mongoDBCore.BSON.ObjectId(isValidId(userId) ? userId : NULL_ID),
+    };
+    const file = await (await dbClient.filesCollection())
+      .findOne(filterFile);
+    if (!file) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+    await (await dbClient.filesCollection())
+      .updateOne(filterFile, { $set: { isPublic: true } });
+
+    return res.status(200).json({
+      id,
+      userId,
+      name: file.name,
+      type: file.type,
+      isPublic: true,
+      parentId: file.parentId === ROOT_FOLDER_ID.toString()
+        ? 0
+        : file.parentId.toString(),
+    });
+  }
 }
