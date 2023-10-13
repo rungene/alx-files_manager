@@ -8,6 +8,7 @@ import mongoDBCore from 'mongodb/lib/core';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
+const MAX_FILES_PER_PAGE = 20;
 const ROOT_FOLDER_ID = 0;
 const acceptedType = { folder: 'folder', file: 'file', image: 'image' };
 const NULL_ID = Buffer.alloc(24, '0').toString('utf-8');
@@ -167,20 +168,20 @@ export default class FilesController {
     if (!userId) {
       return res.status(401).send({ error: 'Unauthorized' });
     }
-    const parentId = req.query.parentId || ROOT_FOLDER_ID.toString()
+    const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
     const page = /\d+/.test((req.query.page || '').toString())
       ? Number.parseInt(req.query.page, 10)
       : 0;
     const fileFilters = {
-      userId: userId,
+      userId,
       parentId: parentId === ROOT_FOLDER_ID.toString()
         ? 0
         : new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID),
     };
-    const files = await (await (await dbClient.filesCollection()) 
+    const files = await (await (await dbClient.filesCollection())
       .aggregate([
         { $match: fileFilters },
-        { $sort: { _id: -1 }},
+        { $sort: { _id: -1 } },
         { $skip: page * MAX_FILES_PER_PAGE },
         { $limit: MAX_FILES_PER_PAGE },
         {
@@ -197,5 +198,6 @@ export default class FilesController {
           },
         },
       ])).toArray();
-    res.status(200).json(files)
+    return res.status(200).json(files);
   }
+}
