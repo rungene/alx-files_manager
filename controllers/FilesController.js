@@ -168,14 +168,20 @@ export default class FilesController {
     if (!userId) {
       return res.status(401).send({ error: 'Unauthorized' });
     }
+    const userObj = await (await dbClient.usersCollection()).findOne({
+      _id: new mongoDBCore.BSON.ObjectId(userId),
+    });
+    if (!userObj) {
+      return res.status(404).send({ error: 'User Not found' });
+    }
     const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
     const page = /\d+/.test((req.query.page || '').toString())
       ? Number.parseInt(req.query.page, 10)
       : 0;
     const fileFilters = {
-      userId,
+      userId: userObj ? userObj._id : NULL_ID,
       parentId: parentId === ROOT_FOLDER_ID.toString()
-        ? 0
+        ? parentId
         : new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID),
     };
     const files = await (await (await dbClient.filesCollection())
