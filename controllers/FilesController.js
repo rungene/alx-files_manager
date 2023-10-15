@@ -2,7 +2,9 @@ import { tmpdir } from 'os';
 // import { ObjectId } from 'mongodb';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
-import { mkdir, writeFile, stat, existsSyn, realPath } from 'fs';
+import {
+  mkdir, writeFile, stat, existsSync, realPath,
+} from 'fs';
 import { join as joinPath } from 'path';
 import { contentType } from 'mime-types';
 import mongoDBCore from 'mongodb/lib/core';
@@ -289,7 +291,7 @@ export default class FilesController {
         : file.parentId.toString(),
     });
   }
-  
+
   /**
   * return the content of the file document based on the ID
   * @param {req} The express request object
@@ -320,18 +322,18 @@ export default class FilesController {
     }
     let filePath = file.localPath;
     if (size) {
-      filePath = `${file.localPath}_${size}`;  
+      filePath = `${file.localPath}_${size}`;
     }
     if (existsSync(filePath)) {
       const fileInfo = await statAsync(filePath);
       if (!fileInfo.isFile()) {
-        return res.status(404).send({ error: 'Not found' });        
+        return res.status(404).send({ error: 'Not found' });
       }
     } else {
-      return res.status(404).send({ error: 'Not found' });  
+      return res.status(404).send({ error: 'Not found' });
     }
     const absoluteFilePath = await realpathAsync(filePath);
-    res.setHeader('Content-Type', contentType(file.name) || 'text/plain'; charset='utf-8');
-    res.status(200).sendFile(absoluteFilePath);
+    res.setHeader('Content-Type', contentType(file.name) || 'text/plain; charset=utf-8');
+    return res.status(200).sendFile(absoluteFilePath);
   }
 }
