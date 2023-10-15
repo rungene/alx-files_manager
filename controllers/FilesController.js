@@ -2,7 +2,7 @@ import { tmpdir } from 'os';
 // import { ObjectId } from 'mongodb';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
-import { mkdir, writeFile } from 'fs';
+import { mkdir, writeFile, stat, existsSyn, realPath } from 'fs';
 import { join as joinPath } from 'path';
 import mongoDBCore from 'mongodb/lib/core';
 import dbClient from '../utils/db';
@@ -15,6 +15,8 @@ const NULL_ID = Buffer.alloc(24, '0').toString('utf-8');
 const DEFAULT_ROOT_FOLDER = 'files_manager';
 const mkDirAsync = promisify(mkdir);
 const writeFileAsync = promisify(writeFile);
+const statAsync = promisify(stat);
+const realpathAsync = promisify(realPath);
 const isValidId = (id) => {
   const size = 24;
   let i = 0;
@@ -285,5 +287,50 @@ export default class FilesController {
         ? 0
         : file.parentId.toString(),
     });
+  }
+  
+  /**
+  * return the content of the file document based on the ID
+  * @param {req} The express request object
+  * @param {res} The express response object
+  */
+  static async getFile(req, res) {
+    const id = req.params ? req.params.id : NULL_ID;
+    const xToken = req.header('X-Token');
+    const size = req.query.size || null;
+    if (!xToken) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+    const key = `auth_${xToken}`;
+    const userId = await redisClient.get(key);
+    if (!userId) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+    const fileFilter = {
+      _id: new mongoDBCore.BSON.ObjectId(isValidId(id) ? id : NULL_ID),
+    };
+    const file = await (await dbClient.filesCollection())
+      .findOne(fileFilter);
+    if (!file || (!file.isPublic && (file.userId.toString() !== userId))) {
+      return res.status(404).send({ error: 'Not found' });
+    }
+    if (file.type === acceptedType.folder) {
+      return res.status(400).send({ error: 'A folder doesn\'t have content' });
+    }
+    let filePath = file.localPath;
+    if (size) {
+      filePath = `${file.localPath}_${size}`;  
+    }
+    if (existsSync(filePath)) {
+      const fileInfo = await statAsync(filePath);
+      if (!fileInfo.isFile()) {
+        return res.status(404).send({ error: 'Not found' });        
+      }
+    } else {
+      return res.status(404).send({ error: 'Not found' });  
+    }
+    const absoluteFilePath = await realpathAsync(filePath);
+    res.setHeader('Content-Type', contentType(file.name) || 'text/plain'; charset='utf-8');
+    res.status(200).sendFile(absoluteFilePath);
   }
 }
