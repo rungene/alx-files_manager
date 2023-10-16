@@ -7,6 +7,7 @@ import {
 } from 'fs';
 import { join as joinPath } from 'path';
 import { contentType } from 'mime-types';
+import Queue from 'bull/lib/queue';
 import mongoDBCore from 'mongodb/lib/core';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
@@ -20,6 +21,7 @@ const mkDirAsync = promisify(mkdir);
 const writeFileAsync = promisify(writeFile);
 const statAsync = promisify(stat);
 const realpathAsync = promisify(realpath);
+const fileQueue = new Queue('generating-thumbnails');
 const isValidId = (id) => {
   const size = 24;
   let i = 0;
@@ -109,6 +111,10 @@ export default class FilesController {
     const insertInfo = await (await dbClient.filesCollection())
       .insertOne(newFile);
     const fileId = insertInfo.insertedId.toString();
+    if (type === acceptedType.image) {
+      const jobName = `Image thumbnail [${userId}-${fileId}]`;
+      fileQueue.add({ userId, fileId, name: jobName });
+    }
     return res.status(201).json({
       id: fileId,
       userId,
