@@ -3,7 +3,7 @@ import { tmpdir } from 'os';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  mkdir, writeFile, stat, existsSync, realPath,
+  mkdir, writeFile, stat, existsSync, realpath,
 } from 'fs';
 import { join as joinPath } from 'path';
 import { contentType } from 'mime-types';
@@ -19,7 +19,7 @@ const DEFAULT_ROOT_FOLDER = 'files_manager';
 const mkDirAsync = promisify(mkdir);
 const writeFileAsync = promisify(writeFile);
 const statAsync = promisify(stat);
-const realpathAsync = promisify(realPath);
+const realpathAsync = promisify(realpath);
 const isValidId = (id) => {
   const size = 24;
   let i = 0;
