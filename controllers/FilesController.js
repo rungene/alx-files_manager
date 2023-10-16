@@ -299,15 +299,15 @@ export default class FilesController {
   */
   static async getFile(req, res) {
     const id = req.params ? req.params.id : NULL_ID;
-    const xToken = req.header('X-Token');
+    let xToken = req.header('X-Token');
     const size = req.query.size || null;
     if (!xToken) {
-      return res.status(401).send({ error: 'Unauthorized' });
+      xToken = null;
     }
     const key = `auth_${xToken}`;
-    const userId = await redisClient.get(key);
+    let userId = await redisClient.get(key);
     if (!userId) {
-      return res.status(401).send({ error: 'Unauthorized' });
+      userId = null;
     }
     const fileFilter = {
       _id: new mongoDBCore.BSON.ObjectId(isValidId(id) ? id : NULL_ID),
