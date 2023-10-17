@@ -6,7 +6,7 @@ import mongoDBCore from 'mongodb/lib/core';
 import dbClient from './utils/db';
 
 const writeFileAsync = promisify(writeFile);
-const fileQueue = new Queue('generating-thumbnails');
+const fileQueue = new Queue('generating thumbnails');
 const generateThumbnail = async (filePath, size) => {
   const buffer = imgThumbnail(filePath, { width: size });
   console.log(`Genrating file: ${filePath} size: ${size}`);
