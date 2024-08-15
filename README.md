@@ -32,6 +32,7 @@ The objective is to build a simple platform to upload and view files:
 - View a file
 - Generate thumbnails for images
 
+In practice, this kind of service already exists in the real life. It's a learning purpose to assemble each piece and build a full product.
 # Learning Objectives
 
 At the end of this project, you are expected to be able to [explain to anyone](https://fs.blog/feynman-learning-technique/), without the help of Google:
