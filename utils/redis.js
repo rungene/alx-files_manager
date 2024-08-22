@@ -19,7 +19,7 @@ class RedisClient {
   }
 
   /**
-  * Checks if the connection to redis server is active
+  * Checks if the connection to Redis server is active
   * @returns {boolean}
   */
   isAlive() {
@@ -27,19 +27,19 @@ class RedisClient {
   }
 
   /**
-  * Retrives value of given redis key
-  * @param {String} the key for item to retrive
-  * @returns {String | Object}
+  * Retrives value of given Redis key
+  * @param {String} key - The key for item to retrive
+  * @returns {Promise<String| null>}
   */
   async get(key) {
     return promisify(this.client.GET).bind(this.client)(key);
   }
 
   /**
-  * Sets a value of a given redis key within given duration
-  * @param {String} key to of the item to store
-  * @param {String} value to store
-  * @param {Number} Expiration time in seconds
+  * Sets a value of a given Redis key within given duration
+  * @param {String} key - The key of the item to store
+  * @param {String} value - The value to store
+  * @param {Number} duration - Expiration time in seconds
   * @returns {Promise<void>}
   */
   async set(key, value, duration) {
@@ -47,8 +47,8 @@ class RedisClient {
   }
 
   /**
-  * Delete a value of given key
-  * @param {String} key of the item to remove
+  * Deletes a value of given key
+  * @param {String} key - The key of the item to remove
   * @returns {Promise<Void>}
   */
   async del(key) {
