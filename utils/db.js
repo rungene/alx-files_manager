@@ -1,4 +1,8 @@
 import mongodb from 'mongodb';
+import dotenv from 'dotenv';
+
+// Comfigure dotenv
+dotenv.config();
 
 // eslint-disable-next-line no-unused-vars
 class DBClient {
