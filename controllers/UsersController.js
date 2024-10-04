@@ -1,4 +1,4 @@
-import sha1 from 'sha1';
+import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
@@ -25,7 +25,8 @@ export default class UsersController {
         error: 'Already exist',
       });
     }
-    const hashedPassword = sha1(pass);
+    // 10 rounds of salting
+    const hashedPassword = await bcrypt.hash(pass, 10);
     const newUser = await (await dbClient.usersCollection())
       .insertOne({ email, password: hashedPassword });
     return res.status(201).send({
