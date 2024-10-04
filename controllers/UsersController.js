@@ -18,8 +18,8 @@ export default class UsersController {
         error: 'Missing password',
       });
     }
-
-    const user = await (await dbClient.usersCollection()).findOne({ email });
+    const usersCollections = await dbClient.usersCollection();
+    const user = await usersCollections.findOne({ email });
     if (user) {
       return res.status(400).send({
         error: 'Already exist',
@@ -27,10 +27,9 @@ export default class UsersController {
     }
     // 10 rounds of salting
     const hashedPassword = await bcrypt.hash(pass, 10);
-    const newUser = await (await dbClient.usersCollection())
-      .insertOne({ email, password: hashedPassword });
+    const { insertedId } = await usersCollection.insertOne({ email, password: hashedPassword });
     return res.status(201).send({
-      id: newUser.insertedId,
+      id: insertedId,
       email,
     });
   }
