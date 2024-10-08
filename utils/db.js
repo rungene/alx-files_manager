@@ -12,7 +12,10 @@ class DBClient {
   constructor() {
     const host = process.env.DB_HOST || 'localhost';
     const port = process.env.DB_PORT || 27017;
-    const database = process.env.DB_DATABASE || 'files_manager';
+
+    // Select the db name based on the enviroment
+    const database = process.env.DB_DATABASE || (
+      process.env.NODE_ENV === 'test' ? 'files_manager_test' : 'files_manager');
 
     const dbUri = `mongodb://${host}:${port}/${database}`;
     this.client = new mongodb.MongoClient(dbUri, {
@@ -26,7 +29,7 @@ class DBClient {
         console.error('Error encounted while connecting to MongoDB', err);
       } else {
         this.isClientConnected = true;
-        console.log('Connected to MongoDB');
+        console.log(`Connected to MongoDB: ${this.client.db().databaseName}`);
       }
     });
   }
