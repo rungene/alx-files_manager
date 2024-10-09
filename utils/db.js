@@ -35,6 +35,18 @@ class DBClient {
   }
 
   /**
+  * Checks status of DB connection
+  * @returns {DB instance} if DB connection is established
+  * @throws Error if not connected
+  */
+  async getDB() {
+    if (!this.isClientConnected) {
+      throw new Error('Database not connected');
+    }
+    return this.client.db();
+  }
+
+  /**
   * check the status of the connection to MongoDB
   * @returns {boolean}
   */
