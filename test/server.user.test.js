@@ -21,6 +21,7 @@ describe('Users API', ()=> {
       .send({ password: 'mypass' })
       .end((err, res) => {
         expect(res).to.have.status(400);
+        expect(res.body).to.be.an('object');
         expect(res.body).to.have.property('error').equal('Missing email');
         done();
       });
@@ -30,6 +31,7 @@ describe('Users API', ()=> {
       .post('/users')
       .send({ email: 'user@example.com' })
       .end((err, res) => {
+        expect(res.body).to.be.an('object');
         expect(res).to.have.status(400);
         expect(res.body).to.have.property('error').equal('Missing password');
         done();
@@ -45,6 +47,7 @@ describe('Users API', ()=> {
         .post('/users')
         .send({ email: 'user@example.com', password: 'mypass' })
         .end((err, res) => {
+          expect(res.body).to.be.an('object');
           expect(res).to.have.status(400);
           expect(res.body).to.have.property('error').equal('Already exist');
           done();
@@ -56,6 +59,7 @@ describe('Users API', ()=> {
       .post('/users')
       .send({ email: 'newuser@example.com', password: 'mypass' })
       .end((err, res) => {
+        expect(res.body).to.be.an('object');
         expect(res).to.have.status(201);
         expect(res.body).to.have.property('id');
         expect(res.body).to.have.property('email').equal('newuser@example.com');
