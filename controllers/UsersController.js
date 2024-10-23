@@ -27,7 +27,8 @@ export default class UsersController {
         });
       }
       // 10 rounds of salting
-      const hashedPassword = await bcrypt.hash(pass, 10);
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(pass, saltRounds);
       const { insertedId } = await usersCollections.insertOne({ email, password: hashedPassword });
       return res.status(201).send({
         id: insertedId,
