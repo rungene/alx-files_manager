@@ -1,4 +1,4 @@
-import sha1 from 'sha1';
+import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
@@ -15,7 +15,11 @@ export default class AuthController {
     if (!email || !password) {
       return res.status(401).send({ error: 'Unauthorized' });
     }
-    const userCredentials = { email, password: sha1(password) };
+    const saltRounds = 10;
+    // Password Hasing
+    const hashedPass = await bcrypt.hash(password, saltRounds);
+    // User credentials with hashed password
+    const userCredentials = { email, password: hashedPass };
     const user = await (await dbClient.usersCollection()).findOne(userCredentials);
     if (!user) {
       return res.status(401).send({ error: 'Unauthorized' });
