@@ -43,7 +43,12 @@ class RedisClient {
   * @returns {Promise<void>}
   */
   async set(key, value, duration) {
-    await promisify(this.client.SETEX).bind(this.client)(key, duration, value);
+    try {
+      await promisify(this.client.SETEX).bind(this.client)(key, duration, value);
+      console.log(`Successfully set the key ${key}`);
+    } catch (error) {
+      console.log(`Error setting the key: ${key} in Redis`, error);
+    }
   }
 
   /**
