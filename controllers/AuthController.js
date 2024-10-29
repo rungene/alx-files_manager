@@ -15,19 +15,22 @@ export default class AuthController {
     if (!email || !password) {
       return res.status(401).send({ error: 'Unauthorized' });
     }
-    const saltRounds = 10;
-    // Password Hasing
-    const hashedPass = await bcrypt.hash(password, saltRounds);
-    // User credentials with hashed password
-    const userCredentials = { email, password: hashedPass };
-    const user = await (await dbClient.usersCollection()).findOne(userCredentials);
+    // Find user by email
+    const userCollection = await dbClient.usersCollection();
+    const user = await userCollection.findOne({ email });
     if (!user) {
+      return res.status(401).send({ error: 'Unauthorized' });
+    }
+
+    // Compare the provided password with the sored password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return res.status(401).send({ error: 'Unauthorized' });
     }
     const token = uuidv4();
     const key = `auth_${token}`;
     redisClient.set(key, user._id.toString(), 24 * 60 * 60);
-    return res.status(200).send({ 'token': token });
+    return res.status(200).send({ token });
   }
 
   static async getDisconnect(req, res) {
