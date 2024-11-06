@@ -63,4 +63,40 @@ describe('Testing Connect', ()=> {
       })
       .catch((err) => done(err));
    });
+  it('should retun 401 if user is not found(Wrong Email)', (done) => {
+    chai.request(app)
+      .post('/users')
+      .send({ email: 'newuser@example.com', password: 'mypass' })
+      .end((err, res) => {
+        if (err) done(err);
+        chai.request(app)
+          .get('/connect')
+          .set('Authorization', 'Basic dXNlckBleGFtcGxlLmNvbTpteXBhc3M=')
+          .then((res) => {
+            expect(res).to.have.status(401);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.property('error').equal('Unauthorized');
+            done();
+          })
+          .catch((err) => done(err));
+      });
+   });
+  it('should retun 401 if user is not found(Wrong Password)', (done) => {
+    chai.request(app)
+      .post('/users')
+      .send({ email: 'newuser@example.com', password: 'mypass' })
+      .end((err, res) => {
+        if (err) done(err);
+        chai.request(app)
+          .get('/connect')
+          .set('Authorization', 'Basic bmV3dXNlckBleGFtcGxlLmNvbTpwYXNz')
+          .then((res) => {
+            expect(res).to.have.status(401);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.property('error').equal('Unauthorized');
+            done();
+          })
+          .catch((err) => done(err));
+      });
+   });
 });
